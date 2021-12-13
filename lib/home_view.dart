@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:my_todo_app/create_todo_view.dart';
 import 'package:my_todo_app/utils.dart';
 
@@ -114,29 +115,31 @@ class _HomeViewState extends State<HomeView> {
         child: const Icon(Icons.add),
         backgroundColor: const Color.fromRGBO(37, 43, 103, 1),
       ),
-      body: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemBuilder: (context, index) {
-            return TaslkCardWidget(
-              dateTime: selectedItem == 'todo'
-                  ? _uncompletedData[index]['date_time']
-                  : _completedData[index]['date_time'],
-              title: selectedItem == 'todo'
-                  ? _uncompletedData[index]['title']
-                  : _completedData[index]['title'],
-              description: selectedItem == 'todo'
-                  ? _uncompletedData[index]['description']
-                  : _completedData[index]['description'],
-            );
-          },
-          separatorBuilder: (context, index) {
-            return const SizedBox(
-              height: 5,
-            );
-          },
-          itemCount: selectedItem == 'todo'
-              ? _uncompletedData.length
-              : _completedData.length),
+      body: LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth > 600) {
+          return Row(
+            children: [
+              SizedBox(
+                width: constraints.maxWidth / 2,
+                child: TodoListViewWidget(
+                    selectedItem: selectedItem,
+                    uncompletedData: _uncompletedData,
+                    completedData: _completedData),
+              ),
+              Expanded(
+                child: Container(
+                  color: Colors.red,
+                ),
+              )
+            ],
+          );
+        }
+
+        return TodoListViewWidget(
+            selectedItem: selectedItem,
+            uncompletedData: _uncompletedData,
+            completedData: _completedData);
+      }),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
@@ -197,6 +200,49 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
     );
+  }
+}
+
+class TodoListViewWidget extends StatelessWidget {
+  const TodoListViewWidget({
+    Key? key,
+    required this.selectedItem,
+    required List<Map<String, dynamic>> uncompletedData,
+    required List<Map<String, dynamic>> completedData,
+  })  : _uncompletedData = uncompletedData,
+        _completedData = completedData,
+        super(key: key);
+
+  final String selectedItem;
+  final List<Map<String, dynamic>> _uncompletedData;
+  final List<Map<String, dynamic>> _completedData;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+        scrollDirection: Axis.vertical,
+        padding: const EdgeInsets.all(16),
+        itemBuilder: (context, index) {
+          return TaslkCardWidget(
+            dateTime: selectedItem == 'todo'
+                ? _uncompletedData[index]['date_time']
+                : _completedData[index]['date_time'],
+            title: selectedItem == 'todo'
+                ? _uncompletedData[index]['title']
+                : _completedData[index]['title'],
+            description: selectedItem == 'todo'
+                ? _uncompletedData[index]['description']
+                : _completedData[index]['description'],
+          );
+        },
+        separatorBuilder: (context, index) {
+          return const SizedBox(
+            height: 5,
+          );
+        },
+        itemCount: selectedItem == 'todo'
+            ? _uncompletedData.length
+            : _completedData.length);
   }
 }
 
